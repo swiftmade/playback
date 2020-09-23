@@ -23,16 +23,15 @@ class Playback
         // The key doesn't exist yet... Allow processing the request
         if (! ($recordedResponse = Recorder::find($key))) {
 
-            // Prevent race conditions between two requests, with the same idempotence key
+            // Start a race. The winner gets to process the request.
             return Recorder::race(
                 $key,
+                // Winner
                 function () use ($key, $request, $next) {
-                    // This request wins the race to process the request
                     // Now, actually process the request
                     $response = $next($request);
 
                     if ($this->isResponseRecordable($response)) {
-                        // If the response is 2xx or 5xx, remember the response
                         Recorder::save(
                             $key,
                             $this->requestHash($request),
@@ -42,9 +41,9 @@ class Playback
 
                     return $response;
                 },
+                // Loser
                 function () {
-                    // This closure is called when there was a race condition
-                    return abort(425, 'Your request is being processed.'
+                    return abort(425, 'Your request is still being processed.'
                         . 'You retried too early. You can safely retry later.');
                 }
             );
