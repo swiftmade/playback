@@ -3,6 +3,7 @@
 namespace Swiftmade\Idempotent\Tests;
 
 use Orchestra\Testbench\TestCase;
+use Swiftmade\Idempotent\Recorder;
 use Swiftmade\Idempotent\IdempotentServiceProvider;
 use Swiftmade\Idempotent\Tests\Support\TestServiceProvider;
 
@@ -14,6 +15,12 @@ class IdempotentTest extends TestCase
             IdempotentServiceProvider::class,
             TestServiceProvider::class,
         ];
+    }
+
+    protected function tearDown(): void
+    {
+        Recorder::flush();
+        parent::tearDown();
     }
 
     /**
@@ -184,6 +191,40 @@ class IdempotentTest extends TestCase
         // Repeat the request
         $response2 = $this->post('books', [], $headers);
         $response2->assertStatus(400);
+    }
+
+    /**
+     * @test
+     */
+    public function it_does_not_play_back_if_validation_fails()
+    {
+        $headers = [
+            config('idempotent.header_name') => 'validation_test',
+        ];
+
+        $response = $this->postJson('validate', ['name' => ''], $headers);
+        $response->assertStatus(422);
+
+        // Repeat the request, this time it will succeed
+        $response2 = $this->postJson('validate', ['name' => 'ahmet'], $headers);
+        $response2->assertStatus(200);
+        $response2->assertHeaderMissing(config('idempotent.playback_header_name'));
+
+        $this->assertNotEquals(
+            $response->getContent(),
+            $response2->getContent()
+        );
+
+        // Repeat the request, but with a different body
+        $response3 = $this->postJson('validate', ['name' => 'ahmet2'], $headers);
+        // It returns 400, because body has changed
+        $response3->assertStatus(400);
+        $response3->assertHeaderMissing(config('idempotent.playback_header_name'));
+
+        // Repeat the request, but with identical body as request2
+        $response4 = $this->postJson('validate', ['name' => 'ahmet'], $headers);
+        $response4->assertStatus(200);
+        $response4->assertHeader(config('idempotent.playback_header_name'), 'validation_test');
     }
 
     /**

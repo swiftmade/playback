@@ -15,5 +15,10 @@ class TestServiceProvider extends ServiceProvider
             'path' => __DIR__ . '/../../laravel.log',
             'level' => 'debug',
         ]);
+
+        $this->app['config']->set('cache.stores.recorded_responses', [
+            'driver' => 'redis',
+            'connection' => 'cache',
+        ]);
     }
 }

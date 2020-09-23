@@ -61,4 +61,9 @@ class Recorder
     {
         return 'ir.' . $key;
     }
+
+    public static function flush()
+    {
+        self::store()->flush();
+    }
 }
