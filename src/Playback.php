@@ -1,12 +1,12 @@
 <?php
 
-namespace Swiftmade\Idempotent;
+namespace Swiftmade\Playback;
 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Idempotent
+class Playback
 {
     public function handle(Request $request, Closure $next)
     {
@@ -65,7 +65,7 @@ class Idempotent
 
     protected function getIdempotencyKey(Request $request)
     {
-        if ($key = $request->header(config('idempotent.header_name'))) {
+        if ($key = $request->header(config('playback.header_name'))) {
             return $key;
         }
     }

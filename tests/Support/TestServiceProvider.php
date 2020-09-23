@@ -1,6 +1,6 @@
 <?php
 
-namespace Swiftmade\Idempotent\Tests\Support;
+namespace Swiftmade\Playback\Tests\Support;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -16,7 +16,7 @@ class TestServiceProvider extends ServiceProvider
             'level' => 'debug',
         ]);
 
-        $this->app['config']->set('cache.stores.recorded_responses', [
+        $this->app['config']->set('cache.stores.playback', [
             'driver' => 'redis',
             'connection' => 'cache',
         ]);

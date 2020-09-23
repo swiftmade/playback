@@ -31,5 +31,5 @@ return [
      * Please see config/cache.php for more details
      *
      */
-    'cache_store' => 'recorded_responses',
+    'cache_store' => 'playback',
 ];

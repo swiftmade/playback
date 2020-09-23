@@ -1,10 +1,10 @@
 <?php
 
-namespace Swiftmade\Idempotent;
+namespace Swiftmade\Playback;
 
 use Illuminate\Support\ServiceProvider;
 
-class IdempotentServiceProvider extends ServiceProvider
+class PlaybackServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -13,7 +13,7 @@ class IdempotentServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('idempotent.php'),
+                __DIR__ . '/../config/config.php' => config_path('playback.php'),
             ], 'config');
 
             // Registering package commands.
@@ -27,6 +27,6 @@ class IdempotentServiceProvider extends ServiceProvider
     public function register()
     {
         // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'idempotent');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'playback');
     }
 }

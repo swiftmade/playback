@@ -1,6 +1,6 @@
 <?php
 
-namespace Swiftmade\Idempotent;
+namespace Swiftmade\Playback;
 
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Swiftmade\Idempotent;
+namespace Swiftmade\Playback;
 
 use Closure;
 use Illuminate\Http\Response;
@@ -39,7 +39,7 @@ class Recorder
     public static function save(string $key, string $requestHash, $response)
     {
         $playbackResponse = clone $response;
-        $playbackResponse->header(config('idempotent.playback_header_name'), $key);
+        $playbackResponse->header(config('playback.playback_header_name'), $key);
 
         static::store()->put(
             $key,
@@ -48,13 +48,13 @@ class Recorder
                 $requestHash,
                 $playbackResponse
             ),
-            config('idempotent.ttl')
+            config('playback.ttl')
         );
     }
 
     protected static function store()
     {
-        return cache()->store(config('idempotent.cache_store'));
+        return cache()->store(config('playback.cache_store'));
     }
 
     protected static function getRedisKey($key)
