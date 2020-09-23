@@ -51,16 +51,16 @@ Open `config/cache.php` and add a new item to the `stores` array.
     ],
 ]
 ```
-
+e
 ## Use
 
-1. The client must supply a idempotency key. Otherwise, the middleware won't execute.
++ The client must supply an idempotency key. Otherwise, the middleware won't execute.
 
 ```
 Idempotency-Key: preferrably uuid4, but anything flies
 ```
 
-2. The server will look the key up. If there's a match, exactly that response will be returned.
++ The server will look the key up. If there's a match, exactly that response will be returned.
 
 You can know that the response is a playback from the response headers:
 
@@ -68,9 +68,9 @@ You can know that the response is a playback from the response headers:
 Is-Playback: your idempotency key
 ```
 
-3. If you get back status `400`, it means the following request was not identical with the cached one. Just use another idempotency key, if you mean to execute a fresh request.
++ If you get back status `400`, it means the following request was not identical with the cached one. Just use another idempotency key, if you mean to execute a fresh request.
 
-4. If you get back status `425`, it means you retried too fast. It's perfectly safe to try again later.
++ If you get back status `425`, it means you retried too fast. It's perfectly safe to try again later.
 
 ### Testing
 
