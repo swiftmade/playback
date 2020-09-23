@@ -1,7 +1,7 @@
 # Changelog
 
-All notable changes to `idempotent` will be documented in this file
+All notable changes to `swiftmade/playback` will be documented in this file
 
-## 1.0.0 - 201X-XX-XX
+## 0.1.0 - 2020-09-23
 
 - initial release
