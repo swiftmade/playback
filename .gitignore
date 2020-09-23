@@ -4,3 +4,4 @@ docs
 vendor
 coverage
 laravel.log
+.phpunit.result.cache
