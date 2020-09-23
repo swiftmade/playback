@@ -2,7 +2,7 @@
 
 return [
     /*
- * Set IDEMPOTENT_DISABLED=true to turn off the library
+     * Set IDEMPOTENT_DISABLED=true to turn off the library
  * for development/testing purposes etc.
  */
     'disabled' => env('IDEMPOTENT_DISABLED', false),
@@ -31,5 +31,5 @@ return [
      * Please see config/cache.php for more details
      *
      */
-    'cache_store' => 'redis',
+    'cache_store' => 'recorded_responses',
 ];
