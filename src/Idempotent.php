@@ -4,9 +4,9 @@ namespace Swiftmade\Idempotent;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 
-class IdempotentMiddleware
+class Idempotent
 {
     public function handle(Request $request, Closure $next)
     {
@@ -57,7 +57,7 @@ class IdempotentMiddleware
 
     protected function isResponseRecordable(Response $response): bool
     {
-        $status = $response->status();
+        $status = $response->getStatusCode();
 
         return ($status >= 200 && $status <= 299)
             || ($status >= 500 && $status <= 599);
