@@ -13,7 +13,8 @@ service:
   - redis-server
 
 before_install:
-  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d
+  - bash <(curl -s https://raw.githubusercontent.com/php-cache/cache/master/build/php/7.2/Redis.sh)
 
 
 before_script:
