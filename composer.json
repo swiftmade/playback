@@ -26,12 +26,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Swiftmade\\Idempotent\\": "src"
+            "Swiftmade\\Playback\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Swiftmade\\Idempotent\\Tests\\": "tests"
+            "Swiftmade\\Playback\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -44,11 +44,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Swiftmade\\Idempotent\\IdempotentServiceProvider"
-            ],
-            "aliases": {
-                "Idempotent": "Swiftmade\\Idempotent\\IdempotentFacade"
-            }
+                "Swiftmade\\Playback\\PlaybackServiceProvider"
+            ]
         }
     }
 }

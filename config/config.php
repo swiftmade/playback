@@ -1,25 +1,35 @@
 <?php
 
 return [
+    /*
+     * Set IDEMPOTENT_DISABLED=true to turn off the library
+ * for development/testing purposes etc.
+ */
+    'disabled' => env('IDEMPOTENT_DISABLED', false),
 
     /*
-     * Which redis connection to use to store idempotency keys and responses?
+ * How long should idempotency keys survive (in seconds)?
+ * The default is set to 1 day.
+     */
+    'ttl' => 86400,
+
+    /*
+     * Where to look for the idempotency key
+     */
+    'header_name' => 'idempotency-key',
+
+    /*
+     * If the response is a playback,
+     * this header will be set
+     */
+    'playback_header_name' => 'is-playback',
+
+    /*
+     * If you want to create a separate cache store
+     * for idempotency records, this is the place to do it.
      *
-     * To add a different connection, please modify
-     * the redis config under config/database.php
+     * Please see config/cache.php for more details
+     *
      */
-    'redis_connection' => 'default',
-
-    /*
-     * To avoid response hijacking, this library suggests
-     * prepending the currently authenticated user's id
-     * to the idempotency key transparently.
-     */
-    'prepend_keys_with_user_id' => true,
-
-    /*
-     * How long should idempotency keys survive (in minutes)?
-     * The default is set to 1 day.
-     */
-    'lifetime' => 1440,
+    'cache_store' => 'playback',
 ];

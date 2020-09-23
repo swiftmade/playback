@@ -1,25 +1,76 @@
-# Very short description of the package
+# Idempotent endpoints in Laravel à la Stripe
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/swiftmade/idempotent.svg?style=flat-square)](https://packagist.org/packages/swiftmade/idempotent)
-[![Build Status](https://img.shields.io/travis/swiftmade/idempotent/master.svg?style=flat-square)](https://travis-ci.org/swiftmade/idempotent)
-[![Quality Score](https://img.shields.io/scrutinizer/g/swiftmade/idempotent.svg?style=flat-square)](https://scrutinizer-ci.com/g/swiftmade/idempotent)
-[![Total Downloads](https://img.shields.io/packagist/dt/swiftmade/idempotent.svg?style=flat-square)](https://packagist.org/packages/swiftmade/idempotent)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/swiftmade/playback.svg?style=flat-square)](https://packagist.org/packages/swiftmade/playback)
+[![Build Status](https://img.shields.io/travis/swiftmade/playback/master.svg?style=flat-square)](https://travis-ci.org/swiftmade/playback)
+[![Total Downloads](https://img.shields.io/packagist/dt/swiftmade/playback.svg?style=flat-square)](https://packagist.org/packages/swiftmade/playback)
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+Are you developing a sensitive API where calling the same endpoint twice can cause catastrophy? 💥
+
+Here's how Stripe handles it:
+- https://stripe.com/blog/idempotency
+- https://stripe.com/docs/api/idempotent_requests
+
+If you said "oh yes, that's smart" then read on. Because we implemented that for Laravel.
+
+## Features
+
+- Apply it to a single route, or apply to your whole API...
+- Works only for POST requests. Other endpoints are ignored.
+- Smart enough to verify path + headers + body is identical before returning the response.
+- Will record and play back 2xx and 5xx responses, without touching your controller again.
+- Doesn't remember the response if there was a validation error (4xx). So it's safe to retry.
+- Prevents race conditions using Laravel's support for cache locks.
+
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require swiftmade/idempotent
+composer require swiftmade/playback
 ```
 
-## Usage
+To customize the configuration:
 
-``` php
-// Usage description here
+```bash
+php artisan vendor:publish --provider="Swiftmade\Playback\PlaybackServiceProvider"
 ```
+
+🚨 Important
+
+Open `config/cache.php` and add a new item to the `stores` array.
+
+```php
+'stores' => [
+    // ... other stores
+    'playback' => [
+        'driver' => 'redis',
+        // We strongly recommend using a different
+        // connection (another redis DB) in production.
+        'connection' => 'cache',
+    ],
+]
+```
+e
+## Use
+
++ The client must supply an idempotency key. Otherwise, the middleware won't execute.
+
+```
+Idempotency-Key: preferrably uuid4, but anything flies
+```
+
++ The server will look the key up. If there's a match, exactly that response will be returned.
+
+You can know that the response is a playback from the response headers:
+
+```
+Is-Playback: your idempotency key
+```
+
++ If you get back status `400`, it means the following request was not identical with the cached one. Just use another idempotency key, if you mean to execute a fresh request.
+
++ If you get back status `425`, it means you retried too fast. It's perfectly safe to try again later.
 
 ### Testing
 
@@ -47,7 +98,3 @@ If you discover any security related issues, please email hello@swiftmade.co ins
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
-
-## Laravel Package Boilerplate
-
-This package was generated using the [Laravel Package Boilerplate](https://laravelpackageboilerplate.com).
