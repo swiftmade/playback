@@ -2,6 +2,7 @@ language: php
 
 php:
   - 7.3
+  - 7.4
 
 env:
   matrix:
@@ -11,9 +12,13 @@ env:
 service:
   - redis-server
 
+before_install:
+  - phpenv config-rm xdebug.ini
+  - before_script: echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
 before_script:
   - travis_retry composer self-update
   - travis_retry composer update ${COMPOSER_FLAGS} --no-interaction --prefer-source
-
+  
 script:
   - vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
