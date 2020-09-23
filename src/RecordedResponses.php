@@ -2,6 +2,7 @@
 
 namespace Swiftmade\Idempotent;
 
+use Closure;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 
@@ -12,42 +13,34 @@ class RecordedResponses
 
     public static function find($key): ?RecordedResponse
     {
-        return self::$cache[$key] ?? null;
-        /*
-        return static::redis()->get(
-            static::getRedisKey($key)
-        );*/
+        return static::store()->get($key);
     }
 
-    public static function placehold($key)
+    public static function lock($key, Closure $closure)
     {
-        self::$cache[$key] = RecordedResponse::placeholder($key);
+        return static::store()->lock($key)->get($closure);
     }
 
     /**
      * @param string $key
      * @param JsonResponse|Response $response
      */
-    public static function record($key, $requestHash, $response)
+    public static function save($key, $requestHash, $response)
     {
-        self::$cache[$key] = new RecordedResponse(
+        static::store()->put(
             $key,
-            $requestHash,
-            $response
+            new RecordedResponse(
+                $key,
+                $requestHash,
+                $response
+            ),
+            config('idempotent.ttl')
         );
     }
 
-    public static function release($key)
+    protected static function store()
     {
-        unset(self::$cache[$key]);
-    }
-
-    /**
-     * @return \Illuminate\Redis\Connections\Connection;
-     */
-    protected static function redis()
-    {
-        return resolve('idempotent.redis');
+        return cache()->store(config('idempotent.cache_store'));
     }
 
     protected static function getRedisKey($key)

@@ -2,7 +2,6 @@
 
 namespace Swiftmade\Idempotent;
 
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\ServiceProvider;
 
 class IdempotentServiceProvider extends ServiceProvider
@@ -29,9 +28,5 @@ class IdempotentServiceProvider extends ServiceProvider
     {
         // Automatically apply the package configuration
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'idempotent');
-
-        $this->app->bind('idempotent.redis', function () {
-            return Redis::connection(config('idempotent.redis_connection'));
-        });
     }
 }

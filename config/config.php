@@ -8,10 +8,10 @@ return [
     'disabled' => env('IDEMPOTENT_DISABLED', false),
 
     /*
-     * How long should idempotency keys survive (in minutes)?
+     * How long should idempotency keys survive (in seconds)?
      * The default is set to 1 day.
      */
-    'lifetime' => 1440,
+    'ttl' => 86400,
 
     /*
      * Where to look for the idempotency key
@@ -25,10 +25,11 @@ return [
     'playback_header_name' => 'is-playback',
 
     /*
-     * Which redis connection to use to store idempotency keys and responses?
+     * If you want to create a separate cache store
+     * for idempotency records, this is the place to do it.
      *
-     * To add a different connection, please modify
-     * the redis config under config/database.php
+     * Please see config/cache.php for more details
+     *
      */
-    'redis_connection' => 'default',
+    'cache_store' => 'redis',
 ];

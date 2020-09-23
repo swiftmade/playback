@@ -22,26 +22,24 @@ class IdempotentMiddleware
 
         // The key doesn't exist yet... Allow processing the request
         if (! ($recordedResponse = RecordedResponses::find($key))) {
-            // Temporarily placehold this key, as we attempt to process this request
-            RecordedResponses::placehold($key);
 
-            // Actually process the request
-            $response = $next($request);
+            // Prevent race conditions between two requests, with the same idempotence key
+            return RecordedResponses::lock($key, function () use ($key, $request, $next) {
+                // This request wins the race to process the request
+                // Now, actually process the request
+                $response = $next($request);
 
-            if ($this->isResponseRecordable($response)) {
-                // If the response is 2xx or 5xx, remember the response
-                RecordedResponses::record(
-                    $key,
-                    $this->requestHash($request),
-                    $response
-                );
-            } else {
-                // Otherwise, let go of the placehold
-                RecordedResponses::release($key);
-            }
+                if ($this->isResponseRecordable($response)) {
+                    // If the response is 2xx or 5xx, remember the response
+                    RecordedResponses::save(
+                        $key,
+                        $this->requestHash($request),
+                        $response
+                    );
+                }
 
-            // Finally, return the response.
-            return $response;
+                return $response;
+            });
         }
 
         return $recordedResponse->playback(
