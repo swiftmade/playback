@@ -2,14 +2,14 @@
 
 return [
     /*
-     * Set IDEMPOTENT_DISABLED=true to turn off the library
-     * for development/testing purposes etc.
-     */
+ * Set IDEMPOTENT_DISABLED=true to turn off the library
+ * for development/testing purposes etc.
+ */
     'disabled' => env('IDEMPOTENT_DISABLED', false),
 
     /*
-     * How long should idempotency keys survive (in seconds)?
-     * The default is set to 1 day.
+ * How long should idempotency keys survive (in seconds)?
+ * The default is set to 1 day.
      */
     'ttl' => 86400,
 

@@ -50,6 +50,36 @@ class IdempotentTest extends TestCase
     /**
      * @test
      */
+    public function it_plays_back_internal_server_errors()
+    {
+        $headers = [
+            config('idempotent.header_name') => ($key = uniqid('key_')),
+        ];
+
+        $response = $this->post('server_error', [], $headers);
+
+        $response->assertStatus(500);
+        // The first response is not a playback
+        $response->assertHeaderMissing(config('idempotent.playback_header_name'));
+
+        // Repeat the request
+        $response2 = $this->post('server_error', [], $headers);
+        $response2->assertStatus(500);
+        $response2->assertHeader(
+            config('idempotent.playback_header_name'),
+            $key
+        );
+
+        // Contents are identical!
+        $this->assertEquals(
+            $response->getContent(),
+            $response2->getContent()
+        );
+    }
+
+    /**
+     * @test
+     */
     public function different_key_returns_different_response()
     {
         $headers = [

@@ -2,22 +2,40 @@
 
 namespace Swiftmade\Idempotent;
 
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+
 class RecordedResponse
 {
-    private $key;
-    private $requestHash;
-    private $response;
+    public $key;
+    public $body;
+    public $status;
+    public $headers;
+    public $requestHash;
 
-    public function __construct($key, $requestHash = null, $response = null)
+    public function __construct($key, $requestHash, $body, $status, $headers)
     {
         $this->key = $key;
+        $this->body = $body;
+        $this->status = $status;
+        $this->headers = $headers;
         $this->requestHash = $requestHash;
-        $this->response = $response;
     }
 
-    public static function placeholder($key)
+    /**
+     * @param string $key
+     * @param string $requestHash
+     * @param Response|JsonResponse $response
+     */
+    public static function fromResponse($key, $requestHash, $response)
     {
-        return new self($key);
+        return new self(
+            $key,
+            $requestHash,
+            $response->getContent(),
+            $response->getStatusCode(),
+            $response->headers->all()
+        );
     }
 
     public function playback($requestHash)
@@ -29,9 +47,6 @@ class RecordedResponse
                 . 'you meant to execute a different request.');
         }
 
-        return $this->response->header(
-            config('idempotent.playback_header_name'),
-            $this->key
-        );
+        return response($this->body, $this->status, $this->headers);
     }
 }

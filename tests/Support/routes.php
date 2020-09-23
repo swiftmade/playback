@@ -13,3 +13,7 @@ Route::post('users', function () {
 Route::post('books', function () {
     return 'Created book id ' . uniqid();
 })->middleware(IdempotentMiddleware::class);
+
+Route::post('server_error', function () {
+    abort(500, 'Internal server error ' . uniqid());
+})->middleware(IdempotentMiddleware::class);

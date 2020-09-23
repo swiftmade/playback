@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 
-class RecordedResponses
+class Recorder
 {
     // Temporary...
     protected static $cache;
@@ -16,23 +16,37 @@ class RecordedResponses
         return static::store()->get($key);
     }
 
-    public static function lock($key, Closure $closure)
+    public static function race($key, Closure $winner, Closure $loser)
     {
-        return static::store()->lock($key)->get($closure);
+        $lock = static::store()->lock($key);
+
+        if ($lock->get()) {
+            try {
+                return $winner();
+            } finally {
+                $lock->release();
+            }
+        } else {
+            return $loser();
+        }
     }
 
     /**
      * @param string $key
+     * @param string $requestHash
      * @param JsonResponse|Response $response
      */
-    public static function save($key, $requestHash, $response)
+    public static function save(string $key, string $requestHash, $response)
     {
+        $playbackResponse = clone $response;
+        $playbackResponse->header(config('idempotent.playback_header_name'), $key);
+
         static::store()->put(
             $key,
-            new RecordedResponse(
+            RecordedResponse::fromResponse(
                 $key,
                 $requestHash,
-                $response
+                $playbackResponse
             ),
             config('idempotent.ttl')
         );

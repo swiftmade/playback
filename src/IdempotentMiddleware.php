@@ -21,25 +21,33 @@ class IdempotentMiddleware
         }
 
         // The key doesn't exist yet... Allow processing the request
-        if (! ($recordedResponse = RecordedResponses::find($key))) {
+        if (! ($recordedResponse = Recorder::find($key))) {
 
             // Prevent race conditions between two requests, with the same idempotence key
-            return RecordedResponses::lock($key, function () use ($key, $request, $next) {
-                // This request wins the race to process the request
-                // Now, actually process the request
-                $response = $next($request);
+            return Recorder::race(
+                $key,
+                function () use ($key, $request, $next) {
+                    // This request wins the race to process the request
+                    // Now, actually process the request
+                    $response = $next($request);
 
-                if ($this->isResponseRecordable($response)) {
-                    // If the response is 2xx or 5xx, remember the response
-                    RecordedResponses::save(
-                        $key,
-                        $this->requestHash($request),
-                        $response
-                    );
+                    if ($this->isResponseRecordable($response)) {
+                        // If the response is 2xx or 5xx, remember the response
+                        Recorder::save(
+                            $key,
+                            $this->requestHash($request),
+                            $response
+                        );
+                    }
+
+                    return $response;
+                },
+                function () {
+                    // This closure is called when there was a race condition
+                    return abort(425, 'Your request is being processed.'
+                        . 'You retried too early. You can safely retry later.');
                 }
-
-                return $response;
-            });
+            );
         }
 
         return $recordedResponse->playback(
