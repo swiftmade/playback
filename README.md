@@ -36,7 +36,7 @@ To customize the configuration:
 php artisan vendor:publish --provider="Swiftmade\Playback\PlaybackServiceProvider"
 ```
 
-🚨 Important
+💡 **Add the playback cache store**
 
 Open `config/cache.php` and add a new item to the `stores` array.
 
@@ -51,7 +51,13 @@ Open `config/cache.php` and add a new item to the `stores` array.
     ],
 ]
 ```
-e
+
+💡 **Apply the middleware**
+
+Just apply the `Swiftmade\Swiftmade\Playback` middleware to your endpoints. You can see how here:
+
+- https://laravel.com/docs/8.x/middleware
+
 ## Use
 
 + The client must supply an idempotency key. Otherwise, the middleware won't execute.
