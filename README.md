@@ -4,13 +4,10 @@
 [![Build Status](https://img.shields.io/travis/swiftmade/playback/master.svg?style=flat-square)](https://travis-ci.org/swiftmade/playback)
 [![Total Downloads](https://img.shields.io/packagist/dt/swiftmade/playback.svg?style=flat-square)](https://packagist.org/packages/swiftmade/playback)
 
-Are you developing a sensitive API where calling the same endpoint twice can cause catastrophy? 💥
+Do you need idempotent endpoints in Laravel? This package handles just that.
 
-Here's how Stripe handles it:
-- https://stripe.com/blog/idempotency
+What's even idempotency? What should you care?
 - https://stripe.com/docs/api/idempotent_requests
-
-If you said "oh yes, that's smart" then read on. Because we implemented that for Laravel.
 
 ## Features
 
@@ -21,32 +18,35 @@ If you said "oh yes, that's smart" then read on. Because we implemented that for
 - Doesn't remember the response if there was a validation error (4xx). So it's safe to retry.
 - Prevents race conditions using Laravel's support for cache locks.
 
-
 ## Installation
 
-You can install the package via composer:
+> 💡 Currently, we only support Laravel 8.x.
+
+1. You can install the package via composer:
 
 ```bash
 composer require swiftmade/playback
 ```
 
-To customize the configuration:
+2. Publish the config file (optional):
 
 ```bash
 php artisan vendor:publish --provider="Swiftmade\Playback\PlaybackServiceProvider"
 ```
 
-💡 **Add the playback cache store**
+3. Add the playback cache store
 
-Open `config/cache.php` and add a new item to the `stores` array.
+Open `config/cache.php` and add a new store.
 
 ```php
 'stores' => [
     // ... other stores
     'playback' => [
         'driver' => 'redis',
-        // We strongly recommend using a different
-        // connection (another redis DB) in production.
+        // 👇🏻 Caution!
+        // You probably don't want to use the cache connection in production.
+        // Playback cache can grow to a huge size for busy applications.
+        // Make sure your redis instance is ready.
         'connection' => 'cache',
     ],
 ]
@@ -54,29 +54,31 @@ Open `config/cache.php` and add a new item to the `stores` array.
 
 💡 **Apply the middleware**
 
-Just apply the `Swiftmade\Swiftmade\Playback` middleware to your endpoints. You can see how here:
+Just apply the `Swiftmade\Playback\Playback` middleware to your endpoints. There are many ways of doing it, so here's a link to the docs:
 
 - https://laravel.com/docs/8.x/middleware
 
 ## Use
 
-+ The client must supply an idempotency key. Otherwise, the middleware won't execute.
+Even when middleware is active on a route, it's business as usual unless the client sends an `Idempotency-Key` in their request header.
 
 ```
 Idempotency-Key: preferrably uuid4, but anything flies
 ```
 
-+ The server will look the key up. If there's a match, exactly that response will be returned.
+Once Playback detects a key, it'll look it up in redis. If found, it will serve the same response **without hitting your controller action again**. You can know that happened by looking at the response headers. If it contains `Is-Playback`, you know it's just a repetition.
 
-You can know that the response is a playback from the response headers:
+If the key is not found during the lookup, a race begins. The first request to acquire the redis lock gets to process the request and cache the response. Any other unlucky requests that land during that time window will return `425` status code.
 
-```
-Is-Playback: your idempotency key
-```
+#### Errors:
 
-+ If you get back status `400`, it means the following request was not identical with the cached one. Just use another idempotency key, if you mean to execute a fresh request.
++ **400 Bad Request**
+If you get back status `400`, it means your request was not identical to the cached one. It's the client's responsibility to repeat the exact same request. This is also why another user can't steal a response just by stealing/guessing the idempotency key. The cookies/authentication token would be different, which fails the signature check.
 
-+ If you get back status `425`, it means you retried too fast. It's perfectly safe to try again later.
++ **425 Too Early**
+If you get this error, it means you retried too fast after your initial attempt. Don't panic and try again a second later or so. It's perfectly safe to do so!
+
+🚨 Pro tip: If your controller action returns 4xx or 3xx status code, Playback won't cache the response. It's your responsibility to ensure no side effects take place (or they are rolled back) if a validation fails, a related db record was not found, etc and therefore the response status is 4xx or 3xx.
 
 ### Testing
 
