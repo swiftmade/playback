@@ -18,7 +18,7 @@ class Recorder
 
     public static function race($key, Closure $winner, Closure $loser)
     {
-        $lock = static::store()->lock($key);
+        $lock = static::store()->lock(static::getRedisLockKey($key));
 
         if ($lock->get()) {
             try {
@@ -60,6 +60,11 @@ class Recorder
     protected static function getRedisKey($key)
     {
         return 'ir.' . $key;
+    }
+
+    protected static function getRedisLockKey($key)
+    {
+        return static::getRedisKey($key) . '.l';
     }
 
     public static function flush()

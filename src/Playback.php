@@ -20,37 +20,35 @@ class Playback
             return $next($request);
         }
 
-        // The key doesn't exist yet... Allow processing the request
-        if (! ($recordedResponse = Recorder::find($key))) {
-
-            // Start a race. The winner gets to process the request.
-            return Recorder::race(
-                $key,
-                // Winner
-                function () use ($key, $request, $next) {
-                    // Now, actually process the request
-                    $response = $next($request);
-
-                    if ($this->isResponseRecordable($response)) {
-                        Recorder::save(
-                            $key,
-                            $this->requestHash($request),
-                            $response
-                        );
-                    }
-
-                    return $response;
-                },
-                // Loser
-                function () {
-                    return abort(425, 'Your request is still being processed.'
-                        . 'You retried too early. You can safely retry later.');
-                }
+        // If cached, play back the response.
+        if ($recordedResponse = Recorder::find($key)) {
+            return $recordedResponse->playback(
+                $this->requestHash($request)
             );
         }
 
-        return $recordedResponse->playback(
-            $this->requestHash($request)
+        // The key doesn't exist yet... Start a race.
+        return Recorder::race(
+            $key,
+            // Winner gets to process the request
+            function () use ($key, $request, $next) {
+                $response = $next($request);
+
+                if ($this->isResponseRecordable($response)) {
+                    Recorder::save(
+                        $key,
+                        $this->requestHash($request),
+                        $response
+                    );
+                }
+
+                return $response;
+            },
+            // Too early for the losers
+            function () {
+                return abort(425, 'Your request is still being processed.'
+                    . 'You retried too early. You can safely retry later.');
+            }
         );
     }
 

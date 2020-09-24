@@ -28,3 +28,9 @@ Route::post('validate', function (Request $request) {
         'validation' => 'ok',
     ]);
 })->middleware(Playback::class);
+
+Route::post('slow', function (Request $request) {
+    sleep(2);
+
+    return microtime();
+})->middleware(Playback::class);

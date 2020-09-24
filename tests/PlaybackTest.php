@@ -2,6 +2,7 @@
 
 namespace Swiftmade\Playback\Tests;
 
+use Spatie\Async\Pool;
 use Swiftmade\Playback\Recorder;
 use Orchestra\Testbench\TestCase;
 use Swiftmade\Playback\PlaybackServiceProvider;
@@ -249,6 +250,100 @@ class PlaybackTest extends TestCase
         $this->assertNotEquals(
             $response->getContent(),
             $response2->getContent()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function the_first_request_wins()
+    {
+        $headers = [
+            config('playback.header_name') => uniqid(),
+        ];
+
+        $pool = Pool::create()
+            ->concurrency(3)
+            ->timeout(6);
+
+        $pool[] = async(function () use ($headers) {
+            $app = new self();
+            $app->setUpBeforeClass();
+            $app->setUp();
+            $response = $app->post('slow', [], $headers);
+
+            return [
+                'id' => 'request1',
+                'response' => [
+                    'status' => $response->baseResponse->getStatusCode(),
+                    'headers' => $response->baseResponse->headers->all(),
+                    'body' => $response->getContent(),
+                ],
+            ];
+        });
+
+        $pool[] = async(function () use ($headers) {
+            usleep(150 * 1000);
+
+            $app = new self();
+            $app->setUpBeforeClass();
+            $app->setUp();
+            $response = $app->post('slow', [], $headers);
+
+            return [
+                'id' => 'request2',
+                'response' => [
+                    'status' => $response->baseResponse->getStatusCode(),
+                    'headers' => $response->baseResponse->headers->all(),
+                    'body' => $response->getContent(),
+                ],
+            ];
+        });
+        $pool[] = async(function () use ($headers) {
+            usleep(3000 * 1000);
+
+            $app = new self();
+            $app->setUpBeforeClass();
+            $app->setUp();
+            $response = $app->post('slow', [], $headers);
+
+            return [
+                'id' => 'request3',
+                'response' => [
+                    'status' => $response->baseResponse->getStatusCode(),
+                    'headers' => $response->baseResponse->headers->all(),
+                    'body' => $response->getContent(),
+                ],
+            ];
+        });
+
+        $responses = collect(await($pool))->pluck('response', 'id');
+
+        $response1 = $responses->get('request1');
+        $response2 = $responses->get('request2');
+        $response3 = $responses->get('request3');
+
+        $this->assertEquals(200, $response1['status']);
+        $this->assertArrayNotHasKey(
+            strtolower(config('playback.playback_header_name')),
+            $response1['headers']
+        );
+
+        $this->assertEquals(425, $response2['status']);
+        $this->assertArrayNotHasKey(
+            strtolower(config('playback.playback_header_name')),
+            $response2['headers']
+        );
+
+        $this->assertEquals(200, $response3['status']);
+        $this->assertArrayHasKey(
+            strtolower(config('playback.playback_header_name')),
+            $response3['headers']
+        );
+
+        $this->assertEquals(
+            $response1['body'],
+            $response3['body']
         );
     }
 }
