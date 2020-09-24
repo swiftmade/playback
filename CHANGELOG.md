@@ -8,4 +8,7 @@ All notable changes to `swiftmade/playback` will be documented in this file
 
 ## 0.2.0 - 2020-09-24
 
-- Fix lock key, and add a test for the handling of race condition.
+- Fix lock key
+- Add a test case for the handling of race condition
+- Minor refactor and documentation improvements
+- Remove predis dependency
