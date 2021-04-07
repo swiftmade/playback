@@ -14,7 +14,6 @@ service:
 
 before_install:
     - mkdir -p ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d
-    - bash <(curl -s https://raw.githubusercontent.com/php-cache/cache/master/build/php/$(phpenv version-name)/Redis.sh)
 
 before_script:
     - travis_retry composer self-update
