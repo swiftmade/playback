@@ -1,26 +1,23 @@
-# Idempotent endpoints in Laravel à la Stripe
+# Laravel Playback
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/swiftmade/playback.svg?style=flat-square)](https://packagist.org/packages/swiftmade/playback)
-[![Build Status](https://img.shields.io/travis/swiftmade/playback/master.svg?style=flat-square)](https://travis-ci.org/swiftmade/playback)
+![GitHub Actions](https://github.com/swiftmade/playback/actions/workflows/test.yml/badge.svg)
 [![Total Downloads](https://img.shields.io/packagist/dt/swiftmade/playback.svg?style=flat-square)](https://packagist.org/packages/swiftmade/playback)
 
-Do you need idempotent endpoints in Laravel? This package handles just that.
+_Idempotent endpoints in Laravel à la Stripe._
 
-What's even idempotency? What should you care?
-- https://stripe.com/docs/api/idempotent_requests
+Playback gives you idempotent endpoints in Laravel, using Redis locks. [What's even idempotency, and why should I care?](https://stripe.com/docs/api/idempotent_requests)
 
 ## Features
 
-- Apply it to a single route, or apply to your whole API...
-- Works only for POST requests. Other endpoints are ignored.
-- Smart enough to verify path + headers + body is identical before returning the response.
-- Will record and play back 2xx and 5xx responses, without touching your controller again.
-- Doesn't remember the response if there was a validation error (4xx). So it's safe to retry.
-- Prevents race conditions using Laravel's support for cache locks.
+-   📼 Records and plays back 2xx and 5xx responses, without running your controller code again.
+-   🔐 Built-in validation to prevent attacks by stolen/guessed idempotency keys.
+-   ⚠️ Won't store the response if there was a validation error (4xx).
+-   🏎 Prevents race conditions using atomical Redis locks.
 
 ## Installation
 
-> 💡 Currently, we only support Laravel 8.x.
+> 💡 Supports Laravel 8.x, Laravel 9.x on PHP 7.4, 8.0 or 8.1
 
 1. You can install the package via composer:
 
@@ -45,7 +42,7 @@ Open `config/cache.php` and add a new store.
         'driver' => 'redis',
         // 👇🏻 Caution!
         // You probably don't want to use the cache connection in production.
-        // Playback cache can grow to a huge size for busy applications.
+        // Playback cache can grow to a big size for busy applications.
         // Make sure your redis instance is ready.
         'connection' => 'cache',
     ],
@@ -56,7 +53,7 @@ Open `config/cache.php` and add a new store.
 
 Just apply the `Swiftmade\Playback\Playback` middleware to your endpoints. There are many ways of doing it, so here's a link to the docs:
 
-- https://laravel.com/docs/8.x/middleware
+-   https://laravel.com/docs/9.x/middleware
 
 ## Use
 
@@ -72,17 +69,17 @@ If the key is not found during the lookup, a race begins. The first request to a
 
 #### Errors:
 
-+ **400 Bad Request**
-If you get back status `400`, it means your request was not identical to the cached one. It's the client's responsibility to repeat the exact same request. This is also why another user can't steal a response just by stealing/guessing the idempotency key. The cookies/authentication token would be different, which fails the signature check.
+-   **400 Bad Request**
+    If you get back status `400`, it means your request was not identical to the cached one. It's the client's responsibility to repeat the exact same request. This is also why another user can't steal a response just by stealing/guessing the idempotency key. The cookies/authentication token would be different, which fails the signature check.
 
-+ **425 Too Early**
-If you get this error, it means you retried too fast after your initial attempt. Don't panic and try again a second later or so. It's perfectly safe to do so!
+-   **425 Too Early**
+    If you get this error, it means you retried too fast after your initial attempt. Don't panic and try again a second later or so. It's perfectly safe to do so!
 
 🚨 Pro tip: If your controller action returns 4xx or 3xx status code, Playback won't cache the response. It's your responsibility to ensure no side effects take place (or they are rolled back) if a validation fails, a related db record was not found, etc and therefore the response status is 4xx or 3xx.
 
 ### Testing
 
-``` bash
+```bash
 composer test
 ```
 
@@ -100,8 +97,8 @@ If you discover any security related issues, please email hello@swiftmade.co ins
 
 ## Credits
 
-- [Ahmet Özisik](https://github.com/swiftmade)
-- [All Contributors](../../contributors)
+-   [Ahmet Özisik](https://github.com/swiftmade)
+-   [All Contributors](../../contributors)
 
 ## License
 
