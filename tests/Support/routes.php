@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Swiftmade\Playback\Playback;
+use Illuminate\Support\Facades\Route;
 
 Route::get('get', function () {
     return 'Get response ' . microtime();
