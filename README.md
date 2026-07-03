@@ -17,7 +17,7 @@ Playback gives you idempotent endpoints in Laravel, using Redis locks. [What's e
 
 ## Installation
 
-> 💡 Supports Laravel 8.x, Laravel 9.x on PHP 7.4, 8.0 or 8.1
+> 💡 Supports Laravel 10.x, 11.x, 12.x and 13.x on PHP 8.1 – 8.4
 
 1. You can install the package via composer:
 
@@ -53,7 +53,7 @@ Open `config/cache.php` and add a new store.
 
 Just apply the `Swiftmade\Playback\Playback` middleware to your endpoints. There are many ways of doing it, so here's a link to the docs:
 
--   https://laravel.com/docs/9.x/middleware
+-   https://laravel.com/docs/middleware
 
 ## Use
 

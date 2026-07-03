@@ -5,6 +5,7 @@ namespace Swiftmade\Playback\Tests;
 use Spatie\Async\Pool;
 use Swiftmade\Playback\Recorder;
 use Orchestra\Testbench\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Swiftmade\Playback\PlaybackServiceProvider;
 use Swiftmade\Playback\Tests\Support\TestServiceProvider;
 
@@ -24,9 +25,7 @@ class PlaybackTest extends TestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_plays_back_post_requests()
     {
         $headers = [
@@ -55,9 +54,7 @@ class PlaybackTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_plays_back_internal_server_errors()
     {
         $headers = [
@@ -85,9 +82,7 @@ class PlaybackTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function different_key_returns_different_response()
     {
         $headers = [
@@ -116,9 +111,7 @@ class PlaybackTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_400_if_headers_change()
     {
         $headers = [
@@ -137,9 +130,7 @@ class PlaybackTest extends TestCase
         $response2->assertStatus(400);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_400_if_body_changes()
     {
         $headers = [
@@ -158,9 +149,7 @@ class PlaybackTest extends TestCase
         $response2->assertStatus(400);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_400_if_query_parameters_change()
     {
         $headers = [
@@ -176,9 +165,7 @@ class PlaybackTest extends TestCase
         $response2->assertStatus(400);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_returns_400_if_path_changes()
     {
         $headers = [
@@ -194,9 +181,7 @@ class PlaybackTest extends TestCase
         $response2->assertStatus(400);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_play_back_if_validation_fails()
     {
         $headers = [
@@ -228,9 +213,7 @@ class PlaybackTest extends TestCase
         $response4->assertHeader(config('playback.playback_header_name'), 'validation_test');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_does_not_record_get_request()
     {
         $headers = [
@@ -253,9 +236,7 @@ class PlaybackTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function the_first_request_wins()
     {
         $headers = [
@@ -267,7 +248,7 @@ class PlaybackTest extends TestCase
             ->timeout(6);
 
         $pool[] = async(function () use ($headers) {
-            $app = new self();
+            $app = new self('the_first_request_wins');
             $app->setUpBeforeClass();
             $app->setUp();
             $response = $app->post('slow', [], $headers);
@@ -285,7 +266,7 @@ class PlaybackTest extends TestCase
         $pool[] = async(function () use ($headers) {
             usleep(150 * 1000);
 
-            $app = new self();
+            $app = new self('the_first_request_wins');
             $app->setUpBeforeClass();
             $app->setUp();
             $response = $app->post('slow', [], $headers);
@@ -302,7 +283,7 @@ class PlaybackTest extends TestCase
         $pool[] = async(function () use ($headers) {
             usleep(3000 * 1000);
 
-            $app = new self();
+            $app = new self('the_first_request_wins');
             $app->setUpBeforeClass();
             $app->setUp();
             $response = $app->post('slow', [], $headers);
