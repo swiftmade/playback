@@ -68,7 +68,12 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
       - name: Install dependencies
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          # We intentionally test older, still-constraint-compatible Laravel releases
+          # (e.g. L10 is EOL) that may carry open Packagist advisories. Composer 2.9+
+          # blocks advisory-flagged versions during resolution by default, so allow them
+          # here. This only affects the CI runner, not the published composer.json.
+          composer config audit.block-insecure false
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction
       - name: Execute tests
         run: vendor/bin/phpunit
