@@ -16,14 +16,14 @@
         }
     ],
     "require": {
-        "php": "^7.3|^8.0",
-        "illuminate/support": "^8.0|^9.0"
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.9",
-        "orchestra/testbench": "^6.0|^7.0",
-        "phpunit/phpunit": "^9.0",
-        "spatie/async": "^1.5"
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^10.5|^11.0|^12.0",
+        "spatie/async": "^1.6"
     },
     "autoload": {
         "psr-4": {
